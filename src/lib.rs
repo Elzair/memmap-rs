@@ -858,8 +858,9 @@ mod test {
         jit_x86(MmapMut::map_anon(4096).unwrap());
     }
 
+    // memmap currently can't do executable file-backed mmaps.
     #[test]
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[cfg(all(unix, any(target_arch = "x86", target_arch = "x86_64")))]
     fn jit_x86_file() {
         let tempdir = tempdir::TempDir::new("mmap").unwrap();
         let file = OpenOptions::new()
@@ -890,7 +891,14 @@ mod test {
 
         let mmap = mmap.make_read_only().expect("make_read_only");
         let mmap = mmap.make_mut().expect("make_mut");
-        let _ = mmap.make_exec().expect("make_exec");
+
+        // memmap currently can't do executable file-backed mmaps.
+        #[cfg(unix)]
+        {
+            let mmap = mmap.make_exec().expect("make_exec");
+        }
+
+        drop(mmap);
     }
 
     #[test]
@@ -910,7 +918,14 @@ mod test {
 
         let mmap = mmap.make_read_only().expect("make_read_only");
         let mmap = mmap.make_mut().expect("make_mut");
-        let _ = mmap.make_exec().expect("make_exec");
+
+        // memmap currently can't do executable file-backed mmaps.
+        #[cfg(unix)]
+        {
+            let mmap = mmap.make_exec().expect("make_exec");
+        }
+
+        drop(mmap);
     }
 
     #[test]
@@ -919,6 +934,7 @@ mod test {
 
         let mmap = mmap.make_read_only().expect("make_read_only");
         let mmap = mmap.make_mut().expect("make_mut");
-        let _ = mmap.make_exec().expect("make_exec");
+        let mmap = mmap.make_exec().expect("make_exec");
+        drop(mmap);
     }
 }
